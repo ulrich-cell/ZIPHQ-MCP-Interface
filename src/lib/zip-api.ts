@@ -196,6 +196,7 @@ export async function searchComments(
 ): Promise<ZipComment[]> {
   const resp = await zipFetch<ZipListResponse<ZipComment>>("/comments", {
     request_guid: requestGuid,
+    page_size: 100,
   });
   return resp.list ?? [];
 }
