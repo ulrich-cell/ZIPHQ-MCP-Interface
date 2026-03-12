@@ -128,7 +128,7 @@ async function TicketContent({ id }: { id: string }) {
 
   // Track seen labels (normalised) to prevent duplicates.
   // Pre-seed with labels already shown in the header.
-  const seen = new Set<string>(["name", "department", "vendor", "status"]);
+  const seen = new Set<string>(["name", "department", "vendor", "status", "vendor signer", "application name"]);
   const push = (target: FieldEntry[], label: string, value: string) => {
     const key = label.toLowerCase().trim();
     if (seen.has(key) || !value || value === "—") return;
