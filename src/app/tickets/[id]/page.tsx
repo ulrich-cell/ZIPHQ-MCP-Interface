@@ -13,6 +13,7 @@ import {
 import { summarizeComments } from "@/lib/summarize";
 import { StatusBadge } from "@/components/status-badge";
 import { CollapsibleSection } from "@/components/collapsible-section";
+import { SecurityPanel } from "@/components/security-panel";
 import { AttachmentsPanel } from "@/components/attachments-panel";
 import { VendorCard } from "@/components/vendor-card";
 import { CommentsTimeline } from "@/components/comments-timeline";
@@ -35,6 +36,9 @@ const SECURITY_KEYS = [
   "vulnerability", "certification", "audit", "dpa", "nda", "contract",
   "third party", "subprocessor", "breach", "incident", "pen test",
   "questionnaire", "infosec", "cyber", "sensitive",
+  // Explicit Zip form fields
+  "store miro data", "direct customer access", "access to it",
+  "intellectual property", "iso", "soc", "uses ai", "vendor onsite",
 ];
 
 const COMMERCIAL_KEYS = [
@@ -128,7 +132,7 @@ async function TicketContent({ id }: { id: string }) {
 
   // Track seen labels (normalised) to prevent duplicates.
   // Pre-seed with labels already shown in the header.
-  const seen = new Set<string>(["name", "department", "vendor", "status", "vendor signer", "vendor signer email", "application name"]);
+  const seen = new Set<string>(["name", "department", "vendor", "status", "vendor signer", "vendor signer email", "application name", "total amount"]);
   const push = (target: FieldEntry[], label: string, value: string) => {
     const key = label.toLowerCase().trim();
     if (seen.has(key) || !value || value === "—") return;
@@ -252,13 +256,7 @@ async function TicketContent({ id }: { id: string }) {
             accent="border-amber-500/30 bg-amber-500/5"
             headerAccent="text-amber-400"
           >
-            {securityFields.length > 0 ? (
-              <FieldGrid fields={securityFields} />
-            ) : (
-              <p className="px-5 py-4 text-sm text-muted-foreground">
-                No security or privacy fields found on this ticket.
-              </p>
-            )}
+            <SecurityPanel fields={securityFields} />
           </CollapsibleSection>
 
           {ticket.attachments && ticket.attachments.length > 0 && (
