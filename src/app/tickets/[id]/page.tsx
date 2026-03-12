@@ -13,6 +13,7 @@ import {
 import { summarizeComments } from "@/lib/summarize";
 import { StatusBadge } from "@/components/status-badge";
 import { AttributePanel } from "@/components/attribute-panel";
+import { AttachmentsPanel } from "@/components/attachments-panel";
 import { VendorCard } from "@/components/vendor-card";
 import { CommentsTimeline } from "@/components/comments-timeline";
 
@@ -44,9 +45,6 @@ async function TicketContent({ id }: { id: string }) {
     displayFields["Existing Vendor"] = ticket.is_existing_vendor ? "Yes" : "No";
   }
 
-  if (ticket.attachments && ticket.attachments.length > 0) {
-    displayFields["Attachments"] = ticket.attachments.map((a) => a.name).join(", ");
-  }
 
   return (
     <div>
@@ -131,6 +129,9 @@ async function TicketContent({ id }: { id: string }) {
         <div className="space-y-6 lg:col-span-2">
           {Object.keys(displayFields).length > 0 && (
             <AttributePanel attributes={displayFields} />
+          )}
+          {ticket.attachments && ticket.attachments.length > 0 && (
+            <AttachmentsPanel attachments={ticket.attachments as Array<{ id: string; name: string; url: string; type?: string }>} />
           )}
           <CommentsTimeline comments={comments} summary={summary} />
         </div>
