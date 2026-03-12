@@ -109,13 +109,13 @@ function ReadingModal({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-[998] bg-black/60 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Scroll container */}
-      <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="fixed inset-0 z-[999] overflow-y-auto">
         <div className="flex min-h-full items-start justify-center p-4 sm:p-8">
           {/* Panel */}
           <div
@@ -167,7 +167,7 @@ function ReadingModal({
 
             {/* Content */}
             {data && (
-              <AiExplainer zClass="z-[70]">
+              <AiExplainer zClass="z-[1000]">
                 <ModalContent data={data} ticketId={ticketId} />
               </AiExplainer>
             )}
