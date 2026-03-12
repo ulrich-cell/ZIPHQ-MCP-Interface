@@ -144,6 +144,7 @@ export async function searchComments(
   const resp = await zipFetch<ZipListResponse<ZipComment>>("/comments", {
     request_guid: requestGuid,
     page_size: 100,
+    include_responses: true,
   });
   return flattenComments(resp.list ?? []);
 }
