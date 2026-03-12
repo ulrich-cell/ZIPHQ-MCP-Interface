@@ -8,6 +8,7 @@ import {
   useCallback,
   ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Hash,
@@ -52,10 +53,17 @@ export function TicketModalProvider({ children }: { children: ReactNode }) {
     <TicketModalCtx.Provider value={setTicketId}>
       {children}
       {ticketId && (
-        <ReadingModal ticketId={ticketId} onClose={() => setTicketId(null)} />
+        <PortaledModal ticketId={ticketId} onClose={() => setTicketId(null)} />
       )}
     </TicketModalCtx.Provider>
   );
+}
+
+function PortaledModal(props: { ticketId: string; onClose: () => void }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(<ReadingModal {...props} />, document.body);
 }
 
 function ReadingModal({
