@@ -1,0 +1,47 @@
+import { MessageSquare } from "lucide-react";
+import type { ZipComment } from "@/lib/zip-api";
+import { formatEpochLong } from "@/lib/zip-api";
+
+interface CommentsTimelineProps {
+  comments: ZipComment[];
+}
+
+export function CommentsTimeline({ comments }: CommentsTimelineProps) {
+  if (comments.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MessageSquare className="h-4 w-4" />
+          <span>No comments yet.</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-card shadow-sm">
+      <div className="border-b border-border px-5 py-3">
+        <h3 className="text-sm font-medium text-muted-foreground">
+          Comments ({comments.length})
+        </h3>
+      </div>
+      <div className="divide-y divide-border">
+        {comments.map((comment) => (
+          <div key={comment.id} className="px-5 py-4">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-sm font-medium text-card-foreground">
+                {comment.creator_name || "Unknown"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {formatEpochLong(comment.created_at)}
+              </span>
+            </div>
+            <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+              {comment.body}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
