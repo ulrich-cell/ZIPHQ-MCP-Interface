@@ -126,33 +126,43 @@ async function TicketContent({ id }: { id: string }) {
   const commercialFields: FieldEntry[] = [];
   const securityFields: FieldEntry[] = [];
 
-  // Known general fields
-  if (ticket.description) generalFields.push({ label: "Description", value: ticket.description });
-  if (ticket.request_type) generalFields.push({ label: "Request Type", value: ticket.request_type });
-  if (ticket.category?.name) generalFields.push({ label: "Category", value: ticket.category.name });
-  if (ticket.subcategory?.name) generalFields.push({ label: "Subcategory", value: ticket.subcategory.name });
-  if (ticket.subsidiary?.name) generalFields.push({ label: "Subsidiary", value: ticket.subsidiary.name });
-  if (ticket.elapsed_time_total_days != null) generalFields.push({ label: "Elapsed Days", value: String(ticket.elapsed_time_total_days) });
-  if (ticket.is_existing_vendor != null) generalFields.push({ label: "Existing Vendor", value: ticket.is_existing_vendor ? "Yes" : "No" });
+  // Track seen labels (normalised) to prevent duplicates
+  const seen = new Set<string>();
+  const push = (target: FieldEntry[], label: string, value: string) => {
+    const key = label.toLowerCase().trim();
+    if (seen.has(key) || !value || value === "—") return;
+    seen.add(key);
+    target.push({ label, value });
+  };
+
+  // Description always first in General
+  if (ticket.description) push(generalFields, "Description", ticket.description);
+
+  // Other known general fields
+  if (ticket.request_type) push(generalFields, "Request Type", ticket.request_type);
+  if (ticket.category?.name) push(generalFields, "Category", ticket.category.name);
+  if (ticket.subcategory?.name) push(generalFields, "Subcategory", ticket.subcategory.name);
+  if (ticket.subsidiary?.name) push(generalFields, "Subsidiary", ticket.subsidiary.name);
+  if (ticket.elapsed_time_total_days != null) push(generalFields, "Elapsed Days", String(ticket.elapsed_time_total_days));
+  if (ticket.is_existing_vendor != null) push(generalFields, "Existing Vendor", ticket.is_existing_vendor ? "Yes" : "No");
 
   // Known commercial fields
-  if (ticket.payment_method) commercialFields.push({ label: "Payment Method", value: ticket.payment_method });
-  if (ticket.price_detail?.start_date) commercialFields.push({ label: "Start Date", value: formatEpoch(ticket.price_detail.start_date) });
-  if (ticket.price_detail?.end_date) commercialFields.push({ label: "End Date", value: formatEpoch(ticket.price_detail.end_date) });
-  if (ticket.price_detail?.currency) commercialFields.push({ label: "Currency", value: ticket.price_detail.currency });
+  if (ticket.payment_method) push(commercialFields, "Payment Method", ticket.payment_method);
+  if (ticket.price_detail?.start_date) push(commercialFields, "Start Date", formatEpoch(ticket.price_detail.start_date));
+  if (ticket.price_detail?.end_date) push(commercialFields, "End Date", formatEpoch(ticket.price_detail.end_date));
+  if (ticket.price_detail?.currency) push(commercialFields, "Currency", ticket.price_detail.currency);
 
-  // Parse the `attributes` array — this is where Zip stores custom form answers
+  // Parse the `attributes` array — Zip stores all custom form answers here
   const attrs = ticket.attributes as Array<{ name?: string; data?: unknown }> | undefined;
   if (Array.isArray(attrs)) {
     for (const attr of attrs) {
       const label = attr.name?.trim();
       if (!label) continue;
       const value = formatValue(attr.data);
-      if (!value || value === "—") continue;
       const cls = classifyByLabel(label);
-      if (cls === "security") securityFields.push({ label, value });
-      else if (cls === "commercial") commercialFields.push({ label, value });
-      else generalFields.push({ label, value });
+      if (cls === "security") push(securityFields, label, value);
+      else if (cls === "commercial") push(commercialFields, label, value);
+      else push(generalFields, label, value);
     }
   }
 
