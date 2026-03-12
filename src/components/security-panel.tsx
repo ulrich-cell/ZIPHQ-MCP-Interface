@@ -21,14 +21,14 @@ interface FieldEntry {
 
 // Map well-known security field labels to icons
 const ICON_MAP: Record<string, React.ReactNode> = {
-  "store miro data":      <Database className="h-5 w-5" />,
-  "direct customer access": <Users className="h-5 w-5" />,
-  "access to it":         <Monitor className="h-5 w-5" />,
-  "intellectual property": <Lock className="h-5 w-5" />,
-  "iso":                  <Award className="h-5 w-5" />,
-  "soc":                  <Award className="h-5 w-5" />,
-  "uses ai":              <Bot className="h-5 w-5" />,
-  "vendor onsite":        <MapPin className="h-5 w-5" />,
+  "store miro data":        <Database className="h-3.5 w-3.5" />,
+  "direct customer access": <Users className="h-3.5 w-3.5" />,
+  "access to it":           <Monitor className="h-3.5 w-3.5" />,
+  "intellectual property":  <Lock className="h-3.5 w-3.5" />,
+  "iso":                    <Award className="h-3.5 w-3.5" />,
+  "soc":                    <Award className="h-3.5 w-3.5" />,
+  "uses ai":                <Bot className="h-3.5 w-3.5" />,
+  "vendor onsite":          <MapPin className="h-3.5 w-3.5" />,
 };
 
 function getIcon(label: string): React.ReactNode {
@@ -36,7 +36,7 @@ function getIcon(label: string): React.ReactNode {
   for (const [key, icon] of Object.entries(ICON_MAP)) {
     if (lower.includes(key)) return icon;
   }
-  return <ShieldAlert className="h-5 w-5" />;
+  return <ShieldAlert className="h-3.5 w-3.5" />;
 }
 
 type Sentiment = "yes" | "no" | "neutral" | "text";
@@ -60,40 +60,38 @@ function BooleanCard({ label, value }: FieldEntry) {
       card: "border-amber-500/30 bg-amber-500/5",
       badge: "bg-amber-500/15 text-amber-400 border border-amber-500/30",
       icon: "text-amber-400",
-      indicator: <ShieldAlert className="h-3.5 w-3.5" />,
+      indicator: <ShieldAlert className="h-3 w-3" />,
     },
     no: {
       card: "border-border bg-card",
       badge: "bg-muted text-muted-foreground border border-border",
       icon: "text-muted-foreground/50",
-      indicator: <ShieldX className="h-3.5 w-3.5" />,
+      indicator: <ShieldX className="h-3 w-3" />,
     },
     neutral: {
       card: "border-border bg-card",
       badge: "bg-muted text-muted-foreground border border-border",
       icon: "text-muted-foreground/40",
-      indicator: <Minus className="h-3.5 w-3.5" />,
+      indicator: <Minus className="h-3 w-3" />,
     },
     text: {
       card: "border-blue-500/20 bg-blue-500/5",
       badge: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
       icon: "text-blue-400/70",
-      indicator: <ShieldCheck className="h-3.5 w-3.5" />,
+      indicator: <ShieldCheck className="h-3 w-3" />,
     },
   }[sentiment];
 
   return (
-    <div className={`rounded-xl border p-4 flex flex-col gap-3 transition-colors ${styles.card}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className={`mt-0.5 shrink-0 ${styles.icon}`}>
-          {getIcon(label)}
-        </div>
-        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${styles.badge}`}>
-          {styles.indicator}
-          {value}
-        </span>
+    <div className={`rounded-lg border px-3 py-2.5 flex items-center justify-between gap-3 transition-colors ${styles.card}`}>
+      <div className="flex items-center gap-2 min-w-0">
+        <span className={`shrink-0 ${styles.icon}`}>{getIcon(label)}</span>
+        <p className="text-xs font-medium text-card-foreground truncate">{label}</p>
       </div>
-      <p className="text-sm font-medium text-card-foreground leading-snug">{label}</p>
+      <span className={`shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${styles.badge}`}>
+        {styles.indicator}
+        {value}
+      </span>
     </div>
   );
 }
@@ -112,9 +110,9 @@ export function SecurityPanel({ fields }: { fields: FieldEntry[] }) {
   const textFields = fields.filter((f) => getSentiment(f.value) === "text");
 
   return (
-    <div className="p-5 space-y-5">
+    <div className="p-4 space-y-3">
       {boolFields.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
           {boolFields.map((f) => (
             <BooleanCard key={f.label} {...f} />
           ))}
