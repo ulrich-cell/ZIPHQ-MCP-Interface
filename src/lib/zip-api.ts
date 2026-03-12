@@ -65,10 +65,11 @@ export interface ZipVendor {
 
 export interface ZipComment {
   id: string;
-  body: string;
-  creator_name?: string;
-  creator_id?: string;
+  text?: string;
+  text_html?: string;
+  commenter?: { id: string; first_name: string; last_name: string; email: string };
   created_at?: number;
+  updated_at?: number;
   [key: string]: unknown;
 }
 
@@ -82,11 +83,9 @@ export interface ZipWorkflow {
 export interface ZipApproval {
   id: string;
   status: number;
-  request_number?: number;
-  request_id?: string;
   node_type?: string;
-  started_at?: number;
-  completed_at?: number;
+  assignee?: { id: string; email: string; first_name: string; last_name: string };
+  request?: { id: string; request_number: number; name?: string; request_type?: string };
   [key: string]: unknown;
 }
 
@@ -217,7 +216,7 @@ export async function searchApprovals(filters: {
 }): Promise<{ data: ZipApproval[]; total_count: number }> {
   const resp = await zipFetch<ZipListResponse<ZipApproval>>(
     "/approvals",
-    toParams({ page_size: 50, ...filters })
+    toParams({ page_size: 100, ...filters })
   );
   return { data: resp.list, total_count: resp.total };
 }

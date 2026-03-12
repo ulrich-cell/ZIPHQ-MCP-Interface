@@ -10,6 +10,7 @@ import {
   formatCurrency,
   requesterName,
 } from "@/lib/zip-api";
+import { summarizeComments } from "@/lib/summarize";
 import { StatusBadge } from "@/components/status-badge";
 import { AttributePanel } from "@/components/attribute-panel";
 import { VendorCard } from "@/components/vendor-card";
@@ -24,6 +25,8 @@ async function TicketContent({ id }: { id: string }) {
       : Promise.resolve(null),
     searchComments(id).catch(() => []),
   ]);
+
+  const summary = await summarizeComments(comments).catch(() => null);
 
   const amount = formatCurrency(ticket.price_detail?.total, ticket.price_detail?.currency);
 
@@ -129,7 +132,7 @@ async function TicketContent({ id }: { id: string }) {
           {Object.keys(displayFields).length > 0 && (
             <AttributePanel attributes={displayFields} />
           )}
-          <CommentsTimeline comments={comments} />
+          <CommentsTimeline comments={comments} summary={summary} />
         </div>
         <div className="space-y-6">
           {vendor && <VendorCard vendor={vendor} />}

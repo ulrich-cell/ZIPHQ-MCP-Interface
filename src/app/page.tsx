@@ -14,19 +14,23 @@ async function DashboardContent() {
   const session = await getSession();
 
   const [requestsResult, approvalsResult] = await Promise.all([
-    searchRequests({ page_size: 100, ...(session?.id ? { requester_id: session.id } : {}) }).catch(() => ({
-      data: [],
-      total_count: 0,
-    })),
-    searchApprovals({ status: 1, page_size: 1 }).catch(() => ({
-      data: [],
-      total_count: 0,
-    })),
+    searchRequests({ page_size: 100 }).catch(() => ({ data: [], total_count: 0 })),
+    searchApprovals({ status: 1 }).catch(() => ({ data: [], total_count: 0 })),
   ]);
 
-  const tickets = requestsResult.data;
-  const totalCount = requestsResult.total_count ?? tickets.length;
-  const pendingApprovals = approvalsResult.total_count ?? approvalsResult.data.length;
+  // Filter approvals assigned to current user, then match to requests
+  const myApprovals = session?.id
+    ? approvalsResult.data.filter((a) => a.assignee?.id === session.id)
+    : approvalsResult.data;
+
+  const myRequestIds = new Set(myApprovals.map((a) => a.request?.id).filter(Boolean));
+
+  const tickets = session?.id
+    ? requestsResult.data.filter((t) => myRequestIds.has(t.id))
+    : requestsResult.data;
+
+  const totalCount = tickets.length;
+  const pendingApprovals = myApprovals.length;
 
   const openTickets = tickets.filter((t) => t.status === 1);
   const inReviewTickets = tickets.filter((t) => t.status === 2);
