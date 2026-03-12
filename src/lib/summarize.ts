@@ -22,7 +22,7 @@ export async function summarizeComments(comments: ZipComment[]): Promise<string 
     messages: [
       {
         role: "user",
-        content: `Summarize the following procurement ticket comments in 2-3 sentences. Focus on key decisions, blockers, and outstanding actions.\n\n${commentText}`,
+        content: `Summarize the following procurement ticket comments in 2-3 plain sentences. Focus on key decisions, blockers, and outstanding actions. Do not use markdown, headings, or bullet points — just clean prose.\n\n${commentText}`,
       },
     ],
   });
