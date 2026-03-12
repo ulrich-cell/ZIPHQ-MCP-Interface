@@ -15,10 +15,38 @@ const STATUS_ORDER = [2, 1, 0, 3, 4, 5, 6];
 async function DashboardContent() {
   const session = await getSession();
 
-  const [requestsResult, approvalsResult] = await Promise.all([
-    searchRequests({ page_size: 500 }).catch(() => ({ data: [], total_count: 0 })),
+  // Fetch all statuses in parallel — the API defaults to active only,
+  // so we explicitly request each terminal status too
+  const [
+    activeResult,
+    approvedResult,
+    rejectedResult,
+    completedResult,
+    canceledResult,
+    draftResult,
+    approvalsResult,
+  ] = await Promise.all([
+    searchRequests({ page_size: 200 }).catch(() => ({ data: [], total_count: 0 })),
+    searchRequests({ page_size: 100, status: 3 }).catch(() => ({ data: [], total_count: 0 })),
+    searchRequests({ page_size: 100, status: 4 }).catch(() => ({ data: [], total_count: 0 })),
+    searchRequests({ page_size: 100, status: 5 }).catch(() => ({ data: [], total_count: 0 })),
+    searchRequests({ page_size: 100, status: 6 }).catch(() => ({ data: [], total_count: 0 })),
+    searchRequests({ page_size: 50, status: 0 }).catch(() => ({ data: [], total_count: 0 })),
     searchApprovals({ page_size: 500 }).catch(() => ({ data: [], total_count: 0 })),
   ]);
+
+  // Merge all results, deduplicated by id
+  const allRequestsMap = new Map<string, ZipRequest>();
+  for (const r of [
+    ...activeResult.data,
+    ...approvedResult.data,
+    ...rejectedResult.data,
+    ...completedResult.data,
+    ...canceledResult.data,
+    ...draftResult.data,
+  ]) {
+    allRequestsMap.set(r.id, r);
+  }
 
   // Filter approvals assigned to current user (client-side)
   const myApprovals = session?.id
@@ -28,13 +56,13 @@ async function DashboardContent() {
   const myApprovalRequestIds = new Set(myApprovals.map((a) => a.request?.id).filter(Boolean));
 
   const tickets: ZipRequest[] = session?.id
-    ? requestsResult.data.filter(
+    ? [...allRequestsMap.values()].filter(
         (t) =>
           myApprovalRequestIds.has(t.id) ||
           t.requester?.id === session.id ||
           t.creator?.id === session.id
       )
-    : requestsResult.data;
+    : [...allRequestsMap.values()];
 
   // Group by request status
   const grouped: Record<number, ZipRequest[]> = {};
