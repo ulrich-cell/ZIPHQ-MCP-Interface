@@ -18,62 +18,84 @@ import { VendorCard } from "@/components/vendor-card";
 import { CommentsTimeline } from "@/components/comments-timeline";
 import { AiExplainer } from "@/components/ai-explainer";
 
-// Known structured fields already shown in the header — exclude from sections
+// Fields already shown in the header — skip in attribute sections
 const HEADER_FIELDS = new Set([
   "id", "request_number", "name", "status", "priority", "vendor", "requester",
   "creator", "department", "subsidiary", "workflow", "category", "subcategory",
   "price_detail", "request_link", "created_at", "updated_at", "completed_at",
   "canceled_at", "initiated_at", "attachments", "amount_usd",
+  // parsed separately
+  "attributes", "elapsed_time_total_days", "is_existing_vendor",
+  "description", "request_type", "payment_method",
 ]);
 
-// Keywords that indicate security / privacy / legal content
 const SECURITY_KEYS = [
   "security", "privacy", "legal", "compliance", "risk", "gdpr", "pii",
-  "data_protection", "data_access", "encryption", "hipaa", "sox", "pen_test",
+  "data protection", "data access", "encryption", "hipaa", "sox",
   "vulnerability", "certification", "audit", "dpa", "nda", "contract",
-  "third_party", "subprocessor", "breach", "incident",
+  "third party", "subprocessor", "breach", "incident", "pen test",
+  "questionnaire", "infosec", "cyber", "sensitive",
 ];
 
-// Keywords that indicate commercial / financial content
 const COMMERCIAL_KEYS = [
   "payment", "billing", "invoice", "budget", "cost", "price", "fee",
-  "subscription", "license", "renewal", "term", "contract_value", "spend",
-  "discount", "currency", "po_", "purchase_order", "finance", "commercial",
+  "subscription", "license", "renewal", "term", "spend", "discount",
+  "currency", "purchase order", "finance", "commercial", "pricing",
+  "net ", "po number",
 ];
 
-function classifyField(key: string): "security" | "commercial" | "general" {
-  const lower = key.toLowerCase();
+function classifyByLabel(label: string): "security" | "commercial" | "general" {
+  const lower = label.toLowerCase();
   if (SECURITY_KEYS.some((k) => lower.includes(k))) return "security";
   if (COMMERCIAL_KEYS.some((k) => lower.includes(k))) return "commercial";
   return "general";
+}
+
+// Smart value formatter — extracts .name/.display_name from objects,
+// handles arrays of attributes, and avoids dumping raw JSON
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "string") return value || "—";
+  if (typeof value === "number") return String(value);
+  if (Array.isArray(value)) {
+    // Arrays of strings
+    if (value.every((v) => typeof v === "string")) return value.join(", ");
+    // Arrays of objects with name
+    const names = value
+      .map((v) => (typeof v === "object" && v !== null ? (v as Record<string, unknown>).display_name ?? (v as Record<string, unknown>).name : null))
+      .filter(Boolean);
+    if (names.length) return names.join(", ");
+    return `${value.length} items`;
+  }
+  if (typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    if (obj.display_name) return String(obj.display_name);
+    if (obj.name) return String(obj.name);
+    if (obj.label) return String(obj.label);
+    if (obj.value) return String(obj.value);
+    // Last resort — only for simple flat objects
+    const entries = Object.entries(obj).filter(([, v]) => typeof v !== "object" && v !== null);
+    if (entries.length <= 3) return entries.map(([k, v]) => `${k}: ${v}`).join(", ");
+    return "(complex value)";
+  }
+  return String(value);
 }
 
 function formatKey(key: string): string {
   return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function formatValue(value: unknown): string {
-  if (value === null || value === undefined) return "—";
-  if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (typeof value === "object") return JSON.stringify(value, null, 2);
-  return String(value);
-}
+interface FieldEntry { label: string; value: string }
 
-function FieldGrid({ fields }: { fields: Record<string, unknown> }) {
-  const entries = Object.entries(fields).filter(
-    ([, v]) => v !== null && v !== undefined && v !== ""
-  );
-  if (entries.length === 0) return null;
+function FieldGrid({ fields }: { fields: FieldEntry[] }) {
+  if (fields.length === 0) return null;
   return (
     <dl className="divide-y divide-border">
-      {entries.map(([key, value]) => (
-        <div key={key} className="flex gap-4 px-5 py-3">
-          <dt className="w-1/3 shrink-0 text-sm font-medium text-muted-foreground">
-            {formatKey(key)}
-          </dt>
-          <dd className="text-sm text-card-foreground break-words whitespace-pre-wrap">
-            {formatValue(value)}
-          </dd>
+      {fields.map(({ label, value }) => (
+        <div key={label} className="flex gap-4 px-5 py-3">
+          <dt className="w-2/5 shrink-0 text-sm font-medium text-muted-foreground">{label}</dt>
+          <dd className="text-sm text-card-foreground break-words whitespace-pre-wrap">{value}</dd>
         </div>
       ))}
     </dl>
@@ -84,14 +106,11 @@ async function TicketContent({ id }: { id: string }) {
   const ticket = await getRequest(id);
 
   const [vendor, comments] = await Promise.all([
-    ticket.vendor?.id
-      ? getVendor(ticket.vendor.id).catch(() => null)
-      : Promise.resolve(null),
+    ticket.vendor?.id ? getVendor(ticket.vendor.id).catch(() => null) : Promise.resolve(null),
     searchComments(id).catch(() => []),
   ]);
 
   const summary = await summarizeComments(comments).catch(() => null);
-
   const amount = formatCurrency(ticket.price_detail?.total, ticket.price_detail?.currency);
 
   const safeRequestLink = (() => {
@@ -99,41 +118,58 @@ async function TicketContent({ id }: { id: string }) {
     try {
       const parsed = new URL(ticket.request_link);
       return parsed.protocol === "https:" ? ticket.request_link : null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   })();
 
-  // Partition all ticket fields into sections
-  const generalFields: Record<string, unknown> = {};
-  const commercialFields: Record<string, unknown> = {};
-  const securityFields: Record<string, unknown> = {};
+  // --- Build sections ---
+  const generalFields: FieldEntry[] = [];
+  const commercialFields: FieldEntry[] = [];
+  const securityFields: FieldEntry[] = [];
 
-  // Pre-populate known general fields
-  if (ticket.description) generalFields["description"] = ticket.description;
-  if (ticket.request_type) generalFields["request_type"] = ticket.request_type;
-  if (ticket.category?.name) generalFields["category"] = ticket.category.name;
-  if (ticket.subcategory?.name) generalFields["subcategory"] = ticket.subcategory.name;
-  if (ticket.subsidiary?.name) generalFields["subsidiary"] = ticket.subsidiary.name;
-  if (ticket.elapsed_time_total_days != null) generalFields["elapsed_days"] = ticket.elapsed_time_total_days;
-  if (ticket.is_existing_vendor != null) generalFields["existing_vendor"] = ticket.is_existing_vendor ? "Yes" : "No";
+  // Known general fields
+  if (ticket.description) generalFields.push({ label: "Description", value: ticket.description });
+  if (ticket.request_type) generalFields.push({ label: "Request Type", value: ticket.request_type });
+  if (ticket.category?.name) generalFields.push({ label: "Category", value: ticket.category.name });
+  if (ticket.subcategory?.name) generalFields.push({ label: "Subcategory", value: ticket.subcategory.name });
+  if (ticket.subsidiary?.name) generalFields.push({ label: "Subsidiary", value: ticket.subsidiary.name });
+  if (ticket.elapsed_time_total_days != null) generalFields.push({ label: "Elapsed Days", value: String(ticket.elapsed_time_total_days) });
+  if (ticket.is_existing_vendor != null) generalFields.push({ label: "Existing Vendor", value: ticket.is_existing_vendor ? "Yes" : "No" });
 
-  // Pre-populate known commercial fields
-  if (ticket.payment_method) commercialFields["payment_method"] = ticket.payment_method;
-  if (ticket.price_detail?.start_date) commercialFields["start_date"] = formatEpoch(ticket.price_detail.start_date);
-  if (ticket.price_detail?.end_date) commercialFields["end_date"] = formatEpoch(ticket.price_detail.end_date);
-  if (ticket.price_detail?.currency) commercialFields["currency"] = ticket.price_detail.currency;
+  // Known commercial fields
+  if (ticket.payment_method) commercialFields.push({ label: "Payment Method", value: ticket.payment_method });
+  if (ticket.price_detail?.start_date) commercialFields.push({ label: "Start Date", value: formatEpoch(ticket.price_detail.start_date) });
+  if (ticket.price_detail?.end_date) commercialFields.push({ label: "End Date", value: formatEpoch(ticket.price_detail.end_date) });
+  if (ticket.price_detail?.currency) commercialFields.push({ label: "Currency", value: ticket.price_detail.currency });
 
-  // Classify all remaining unknown fields
-  for (const [key, value] of Object.entries(ticket)) {
+  // Parse the `attributes` array — this is where Zip stores custom form answers
+  const attrs = ticket.attributes as Array<{ name?: string; data?: unknown }> | undefined;
+  if (Array.isArray(attrs)) {
+    for (const attr of attrs) {
+      const label = attr.name?.trim();
+      if (!label) continue;
+      const value = formatValue(attr.data);
+      if (!value || value === "—") continue;
+      const cls = classifyByLabel(label);
+      if (cls === "security") securityFields.push({ label, value });
+      else if (cls === "commercial") commercialFields.push({ label, value });
+      else generalFields.push({ label, value });
+    }
+  }
+
+  // Remaining unknown top-level fields not already shown
+  for (const [key, raw] of Object.entries(ticket)) {
     if (HEADER_FIELDS.has(key)) continue;
-    if (key in generalFields || key in commercialFields || key in securityFields) continue;
-    if (value === null || value === undefined || value === "") continue;
-
-    const cls = classifyField(key);
-    if (cls === "security") securityFields[key] = value;
-    else if (cls === "commercial") commercialFields[key] = value;
-    else generalFields[key] = value;
+    if (raw === null || raw === undefined || raw === "") continue;
+    // Skip arrays/objects we can't usefully display (already handled above)
+    if (Array.isArray(raw)) continue;
+    const label = formatKey(key);
+    const value = formatValue(raw);
+    if (!value || value === "—" || value === "(complex value)") continue;
+    const cls = classifyByLabel(label);
+    const entry = { label, value };
+    if (cls === "security") securityFields.push(entry);
+    else if (cls === "commercial") commercialFields.push(entry);
+    else generalFields.push(entry);
   }
 
   return (
@@ -149,70 +185,30 @@ async function TicketContent({ id }: { id: string }) {
               <StatusBadge status={ticket.status} />
             </div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <Hash className="h-3.5 w-3.5" />
-                REQ-{ticket.request_number}
-              </span>
+              <span className="flex items-center gap-1.5"><Hash className="h-3.5 w-3.5" />REQ-{ticket.request_number}</span>
               {ticket.workflow?.name && (
-                <span className="flex items-center gap-1.5">
-                  <Layers className="h-3.5 w-3.5" />
-                  {ticket.workflow.name}
-                </span>
+                <span className="flex items-center gap-1.5"><Layers className="h-3.5 w-3.5" />{ticket.workflow.name}</span>
               )}
-              <span className="flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" />
-                {requesterName(ticket)}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5" />
-                {formatEpoch(ticket.created_at)}
-              </span>
+              <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" />{requesterName(ticket)}</span>
+              <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{formatEpoch(ticket.created_at)}</span>
               {amount !== "—" && (
-                <span className="flex items-center gap-1.5">
-                  <DollarSign className="h-3.5 w-3.5" />
-                  {amount}
-                </span>
+                <span className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5" />{amount}</span>
               )}
             </div>
           </div>
           {safeRequestLink && (
-            <a
-              href={safeRequestLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              Open in Zip
-              <ExternalLink className="h-3.5 w-3.5" />
+            <a href={safeRequestLink} target="_blank" rel="noopener noreferrer"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+              Open in Zip <ExternalLink className="h-3.5 w-3.5" />
             </a>
           )}
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3 border-t border-border pt-4 sm:grid-cols-4">
-          <div>
-            <p className="text-xs text-muted-foreground">Department</p>
-            <p className="text-sm font-medium text-card-foreground">
-              {ticket.department?.name || "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Vendor</p>
-            <p className="text-sm font-medium text-card-foreground">
-              {ticket.vendor?.name || "—"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Updated</p>
-            <p className="text-sm font-medium text-card-foreground">
-              {formatEpochLong(ticket.updated_at)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Completed</p>
-            <p className="text-sm font-medium text-card-foreground">
-              {formatEpoch(ticket.completed_at)}
-            </p>
-          </div>
+          <div><p className="text-xs text-muted-foreground">Department</p><p className="text-sm font-medium text-card-foreground">{ticket.department?.name || "—"}</p></div>
+          <div><p className="text-xs text-muted-foreground">Vendor</p><p className="text-sm font-medium text-card-foreground">{ticket.vendor?.name || "—"}</p></div>
+          <div><p className="text-xs text-muted-foreground">Updated</p><p className="text-sm font-medium text-card-foreground">{formatEpochLong(ticket.updated_at)}</p></div>
+          <div><p className="text-xs text-muted-foreground">Completed</p><p className="text-sm font-medium text-card-foreground">{formatEpoch(ticket.completed_at)}</p></div>
         </div>
       </div>
 
@@ -220,29 +216,18 @@ async function TicketContent({ id }: { id: string }) {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
 
-          {/* General Information */}
-          {Object.keys(generalFields).length > 0 && (
-            <CollapsibleSection
-              title="General Information"
-              icon={<Info className="h-4 w-4" />}
-              defaultOpen
-            >
+          {generalFields.length > 0 && (
+            <CollapsibleSection title="General Information" icon={<Info className="h-4 w-4" />} defaultOpen>
               <FieldGrid fields={generalFields} />
             </CollapsibleSection>
           )}
 
-          {/* Commercial Information */}
-          {Object.keys(commercialFields).length > 0 && (
-            <CollapsibleSection
-              title="Commercial Information"
-              icon={<BarChart2 className="h-4 w-4" />}
-              defaultOpen={false}
-            >
+          {commercialFields.length > 0 && (
+            <CollapsibleSection title="Commercial Information" icon={<BarChart2 className="h-4 w-4" />} defaultOpen={false}>
               <FieldGrid fields={commercialFields} />
             </CollapsibleSection>
           )}
 
-          {/* Security, Privacy & Legal */}
           <CollapsibleSection
             title="Security, Privacy & Legal"
             icon={<ShieldAlert className="h-4 w-4" />}
@@ -250,23 +235,19 @@ async function TicketContent({ id }: { id: string }) {
             accent="border-amber-500/30 bg-amber-500/5"
             headerAccent="text-amber-400"
           >
-            {Object.keys(securityFields).length > 0 ? (
+            {securityFields.length > 0 ? (
               <FieldGrid fields={securityFields} />
             ) : (
               <p className="px-5 py-4 text-sm text-muted-foreground">
-                No security or privacy fields detected on this ticket.
+                No security or privacy fields found on this ticket.
               </p>
             )}
           </CollapsibleSection>
 
-          {/* Attachments */}
           {ticket.attachments && ticket.attachments.length > 0 && (
-            <AttachmentsPanel
-              attachments={ticket.attachments as Array<{ id: string; name: string; url: string; type?: string }>}
-            />
+            <AttachmentsPanel attachments={ticket.attachments as Array<{ id: string; name: string; url: string; type?: string }>} />
           )}
 
-          {/* Comments */}
           <CommentsTimeline comments={comments} summary={summary} />
         </div>
 
@@ -284,9 +265,7 @@ function TicketSkeleton() {
       <div className="h-48 animate-pulse rounded-xl border border-border bg-card" />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <div className="h-40 animate-pulse rounded-xl border border-border bg-card" />
-          <div className="h-40 animate-pulse rounded-xl border border-border bg-card" />
-          <div className="h-40 animate-pulse rounded-xl border border-border bg-card" />
+          {[...Array(3)].map((_, i) => <div key={i} className="h-40 animate-pulse rounded-xl border border-border bg-card" />)}
         </div>
         <div className="h-40 animate-pulse rounded-xl border border-border bg-card" />
       </div>
@@ -294,21 +273,13 @@ function TicketSkeleton() {
   );
 }
 
-export default async function TicketDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function TicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-
   return (
     <AiExplainer>
       <div>
         <div className="mb-6">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
           </Link>
