@@ -160,7 +160,6 @@ export async function listWorkflows(): Promise<ZipWorkflow[]> {
 export async function searchApprovals(filters: {
   status?: number;
   request_number?: string;
-  assignee_id?: string;
   page_size?: number;
 } = {}): Promise<{ data: ZipApproval[]; total_count: number }> {
   const resp = await zipFetch<ZipListResponse<ZipApproval>>(

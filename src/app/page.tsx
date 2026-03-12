@@ -16,39 +16,26 @@ const STATUS_ORDER = [2, 1, 0, 3, 4, 5, 6];
 async function DashboardContent() {
   const session = await getSession();
 
-  // Fetch in parallel:
-  // 1. Approvals assigned to this user specifically (server-side filter)
-  // 2. Requests submitted by this user (server-side filter)
-  // 3. A broad recent requests window to cover any edge cases
-  const [approvalsResult, mySubmittedResult, recentRequestsResult] = await Promise.all([
-    searchApprovals(
-      session?.id ? { assignee_id: session.id, page_size: 500 } : { page_size: 500 }
-    ).catch(() => ({ data: [], total_count: 0 })),
-    session?.id
-      ? searchRequests({ page_size: 500, requester_id: session.id }).catch(() => ({ data: [], total_count: 0 }))
-      : Promise.resolve({ data: [], total_count: 0 }),
-    searchRequests({ page_size: 200 }).catch(() => ({ data: [], total_count: 0 })),
+  const [requestsResult, approvalsResult] = await Promise.all([
+    searchRequests({ page_size: 500 }).catch(() => ({ data: [], total_count: 0 })),
+    searchApprovals({ page_size: 500 }).catch(() => ({ data: [], total_count: 0 })),
   ]);
 
+  // Filter approvals assigned to current user (client-side)
   const myApprovals = session?.id
     ? approvalsResult.data.filter((a) => a.assignee?.id === session.id)
     : approvalsResult.data;
 
   const myApprovalRequestIds = new Set(myApprovals.map((a) => a.request?.id).filter(Boolean));
 
-  // Merge all request sources, deduplicated by id
-  const allRequests = new Map<string, ZipRequest>();
-  for (const t of recentRequestsResult.data) allRequests.set(t.id, t);
-  for (const t of mySubmittedResult.data) allRequests.set(t.id, t);
-
   const tickets: ZipRequest[] = session?.id
-    ? [...allRequests.values()].filter(
+    ? requestsResult.data.filter(
         (t) =>
           myApprovalRequestIds.has(t.id) ||
           t.requester?.id === session.id ||
           t.creator?.id === session.id
       )
-    : [...allRequests.values()];
+    : requestsResult.data;
 
   // Group by request status
   const grouped: Record<number, ZipRequest[]> = {};
