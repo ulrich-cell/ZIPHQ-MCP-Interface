@@ -81,6 +81,14 @@ export interface ZipApproval {
   [key: string]: unknown;
 }
 
+export interface ZipUser {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_active?: boolean;
+}
+
 export interface RequestFilters {
   status?: number;
   request_type?: string;
@@ -93,6 +101,7 @@ export interface RequestFilters {
   page_token?: string;
   sort_by?: string;
   sort_order?: "asc" | "desc";
+  requester_id?: string;
 }
 
 class ZipApiError extends Error {
@@ -201,6 +210,13 @@ export async function searchApprovals(filters: {
     toParams({ page_size: 50, ...filters })
   );
   return { data: resp.list, total_count: resp.total };
+}
+
+// --- Users ---
+
+export async function searchUserByEmail(email: string): Promise<ZipUser | null> {
+  const resp = await zipFetch<ZipListResponse<ZipUser>>("/users", { email });
+  return resp.list?.[0] ?? null;
 }
 
 // --- Display helpers ---

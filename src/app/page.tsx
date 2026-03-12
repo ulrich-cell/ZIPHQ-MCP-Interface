@@ -6,12 +6,15 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { searchRequests, searchApprovals, getStatusInfo } from "@/lib/zip-api";
+import { getSession } from "@/lib/session";
 import { SummaryCard } from "@/components/summary-card";
 import { TicketTable } from "@/components/ticket-table";
 
 async function DashboardContent() {
+  const session = await getSession();
+
   const [requestsResult, approvalsResult] = await Promise.all([
-    searchRequests({ page_size: 100 }).catch(() => ({
+    searchRequests({ page_size: 100, ...(session?.id ? { requester_id: session.id } : {}) }).catch(() => ({
       data: [],
       total_count: 0,
     })),

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Shield } from "lucide-react";
+import { Header } from "@/components/header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,6 +43,7 @@ export default function RootLayout({
             </div>
           </div>
         </nav>
+        <Header />
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
           {children}
         </main>
