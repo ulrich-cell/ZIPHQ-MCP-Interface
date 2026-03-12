@@ -128,7 +128,7 @@ async function TicketContent({ id }: { id: string }) {
 
   // Track seen labels (normalised) to prevent duplicates.
   // Pre-seed with labels already shown in the header.
-  const seen = new Set<string>(["name", "department", "vendor", "status", "vendor signer", "application name"]);
+  const seen = new Set<string>(["name", "department", "vendor", "status", "vendor signer", "vendor signer email", "application name"]);
   const push = (target: FieldEntry[], label: string, value: string) => {
     const key = label.toLowerCase().trim();
     if (seen.has(key) || !value || value === "—") return;
@@ -154,12 +154,18 @@ async function TicketContent({ id }: { id: string }) {
   if (ticket.price_detail?.currency) push(commercialFields, "Currency", ticket.price_detail.currency);
 
   // Parse the `attributes` array — Zip stores all custom form answers here
+  let vendorSignerName: string | undefined;
+  let vendorSignerEmail: string | undefined;
   const attrs = ticket.attributes as Array<{ name?: string; data?: unknown }> | undefined;
   if (Array.isArray(attrs)) {
     for (const attr of attrs) {
       const label = attr.name?.trim();
       if (!label) continue;
+      const lower = label.toLowerCase();
       const value = formatValue(attr.data);
+      // Extract signer fields for the vendor card
+      if (lower === "vendor signer") { vendorSignerName = value; continue; }
+      if (lower === "vendor signer email") { vendorSignerEmail = value; continue; }
       const cls = classifyByLabel(label);
       if (cls === "security") push(securityFields, label, value);
       else if (cls === "commercial") push(commercialFields, label, value);
@@ -263,7 +269,7 @@ async function TicketContent({ id }: { id: string }) {
         </div>
 
         <div className="space-y-6">
-          {vendor && <VendorCard vendor={vendor} />}
+          {vendor && <VendorCard vendor={vendor} signerName={vendorSignerName} signerEmail={vendorSignerEmail} />}
         </div>
       </div>
     </div>
