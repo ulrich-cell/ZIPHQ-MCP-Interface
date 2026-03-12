@@ -91,9 +91,9 @@ export function AttachmentsPanel({ attachments }: AttachmentsPanelProps) {
       {open && (
         <div className="border-t border-border">
           {/* Zero-trust notice */}
-          <div className="flex items-center gap-2 border-b border-border/50 bg-amber-500/5 px-5 py-2">
-            <ShieldAlert className="h-3 w-3 shrink-0 text-amber-500/60" />
-            <p className="text-xs font-mono text-amber-500/60 tracking-wide">
+          <div className="flex items-center gap-2 border-b border-border/50 bg-sky-500/5 px-5 py-2">
+            <ShieldAlert className="h-3 w-3 shrink-0 text-sky-400/60" />
+            <p className="text-xs font-mono text-sky-400/60 tracking-wide">
               verify before opening · external links · handle with care
             </p>
           </div>
@@ -117,9 +117,9 @@ export function AttachmentsPanel({ attachments }: AttachmentsPanelProps) {
                     rel="noopener noreferrer nofollow"
                     className="flex items-center gap-3 px-5 py-1.5 hover:bg-muted/20 transition-colors group/item"
                   >
-                    <Icon className={`h-3.5 w-3.5 shrink-0 ${risky ? "text-red-400/60" : "text-yellow-500/40 group-hover/item:text-yellow-400/70"} transition-colors`} />
+                    <Icon className={`h-3.5 w-3.5 shrink-0 ${risky ? "text-red-400/60" : "text-yellow-400/70 group-hover/item:text-yellow-300"} transition-colors`} />
 
-                    <span className={`flex-1 truncate text-xs font-mono tracking-tight ${risky ? "text-red-300/70" : "text-yellow-300/50 group-hover/item:text-yellow-300/80"} transition-colors`}>
+                    <span className={`flex-1 truncate text-xs font-mono tracking-tight ${risky ? "text-red-300/70" : "text-yellow-300/70 group-hover/item:text-yellow-200"} transition-colors`}>
                       {displayName}
                     </span>
 
@@ -130,7 +130,7 @@ export function AttachmentsPanel({ attachments }: AttachmentsPanelProps) {
                           caution
                         </span>
                       )}
-                      <span className={`rounded px-1.5 py-0.5 text-xs font-mono tracking-wider ${risky ? "bg-red-500/10 text-red-400/60" : "bg-yellow-500/10 text-yellow-500/40"}`}>
+                      <span className={`rounded px-1.5 py-0.5 text-xs font-mono tracking-wider ${risky ? "bg-red-500/10 text-red-400/60" : "bg-yellow-400/10 text-yellow-400/70"}`}>
                         {ext.toUpperCase()}
                       </span>
                       <ExternalLink className="h-3 w-3 text-muted-foreground/30 opacity-0 group-hover/item:opacity-100 transition-opacity" />
