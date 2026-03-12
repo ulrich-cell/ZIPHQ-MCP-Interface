@@ -147,7 +147,7 @@ async function zipFetch<T>(
       "Zip-Api-Key": API_KEY,
       Accept: "application/json",
     },
-    next: { revalidate: 30 },
+    cache: "no-store",
   });
 
   if (!response.ok) {

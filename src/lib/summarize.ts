@@ -7,6 +7,8 @@ const client = new Anthropic();
 export async function summarizeComments(comments: ZipComment[]): Promise<string | null> {
   if (comments.length === 0) return null;
 
+  // Cap total comment text sent to the model to avoid unbounded token usage
+  const MAX_COMMENT_CHARS = 8000;
   const commentText = comments
     .map((c) => {
       const name = c.commenter
@@ -14,7 +16,8 @@ export async function summarizeComments(comments: ZipComment[]): Promise<string 
         : "Unknown";
       return `${name}: ${c.text || ""}`;
     })
-    .join("\n\n");
+    .join("\n\n")
+    .slice(0, MAX_COMMENT_CHARS);
 
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",

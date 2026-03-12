@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Inbox, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
-import { searchRequests, searchApprovals, getStatusInfo, REQUEST_STATUSES } from "@/lib/zip-api";
+import { searchRequests, searchApprovals, REQUEST_STATUSES } from "@/lib/zip-api";
 import type { ZipRequest } from "@/lib/zip-api";
 import { getSession } from "@/lib/session";
 import { SummaryCard } from "@/components/summary-card";

@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/session";
 
 export async function GET() {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const baseUrl = process.env.ZIP_BASE_URL || "https://api.ziphq.com";
   const apiKey = process.env.ZIP_API_KEY_PROD || process.env.ZIP_API_KEY || "";
   const keyPreview = apiKey ? `${apiKey.substring(0, 8)}...` : "MISSING";

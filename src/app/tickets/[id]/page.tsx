@@ -32,6 +32,17 @@ async function TicketContent({ id }: { id: string }) {
 
   const amount = formatCurrency(ticket.price_detail?.total, ticket.price_detail?.currency);
 
+  // Validate request_link to prevent open redirect / javascript: injection
+  const safeRequestLink = (() => {
+    if (!ticket.request_link) return null;
+    try {
+      const parsed = new URL(ticket.request_link);
+      return parsed.protocol === "https:" ? ticket.request_link : null;
+    } catch {
+      return null;
+    }
+  })();
+
   const displayFields: Record<string, unknown> = {};
   if (ticket.description) displayFields["Description"] = ticket.description;
   if (ticket.request_type) displayFields["Request Type"] = ticket.request_type;
@@ -85,9 +96,9 @@ async function TicketContent({ id }: { id: string }) {
               )}
             </div>
           </div>
-          {ticket.request_link && (
+          {safeRequestLink && (
             <a
-              href={ticket.request_link}
+              href={safeRequestLink}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
