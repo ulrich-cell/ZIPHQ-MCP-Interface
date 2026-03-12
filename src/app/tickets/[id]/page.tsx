@@ -39,6 +39,7 @@ const SECURITY_KEYS = [
   // Explicit Zip form fields
   "store miro data", "direct customer access", "access to it",
   "intellectual property", "iso", "soc", "uses ai", "vendor onsite",
+  "deliver to employees", "deliver to customers", "negative revenue impact",
 ];
 
 const COMMERCIAL_KEYS = [

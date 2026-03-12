@@ -12,6 +12,8 @@ import {
   ShieldX,
   ShieldAlert,
   Minus,
+  PackageCheck,
+  TrendingDown,
 } from "lucide-react";
 
 interface FieldEntry {
@@ -29,6 +31,9 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   "soc":                    <Award className="h-3.5 w-3.5" />,
   "uses ai":                <Bot className="h-3.5 w-3.5" />,
   "vendor onsite":          <MapPin className="h-3.5 w-3.5" />,
+  "deliver to employees":   <PackageCheck className="h-3.5 w-3.5" />,
+  "deliver to customers":   <PackageCheck className="h-3.5 w-3.5" />,
+  "negative revenue impact": <TrendingDown className="h-3.5 w-3.5" />,
 };
 
 function getIcon(label: string): React.ReactNode {
