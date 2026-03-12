@@ -70,6 +70,7 @@ export interface ZipComment {
   commenter?: { id: string; first_name: string; last_name: string; email: string };
   created_at?: number;
   updated_at?: number;
+  comment_responses?: ZipComment[];
   [key: string]: unknown;
 }
 
@@ -191,6 +192,17 @@ export async function getVendor(id: string): Promise<ZipVendor> {
 
 // --- Comments ---
 
+function flattenComments(comments: ZipComment[]): ZipComment[] {
+  const result: ZipComment[] = [];
+  for (const c of comments) {
+    result.push(c);
+    if (c.comment_responses?.length) {
+      result.push(...flattenComments(c.comment_responses));
+    }
+  }
+  return result;
+}
+
 export async function searchComments(
   requestGuid: string
 ): Promise<ZipComment[]> {
@@ -198,7 +210,7 @@ export async function searchComments(
     request_guid: requestGuid,
     page_size: 100,
   });
-  return resp.list ?? [];
+  return flattenComments(resp.list ?? []);
 }
 
 // --- Workflows ---

@@ -8,12 +8,28 @@ export async function GET() {
   const headers = { "Zip-Api-Key": apiKey, Accept: "application/json" };
 
   try {
-    // Fetch a sample approval to inspect its shape
-    const appRes = await fetch(`${baseUrl}/approvals?page_size=1&status=1`, { headers });
-    const appData = await appRes.json();
-    const sampleApproval = appData?.list?.[0] ?? null;
+    // Find a request with comments and check pagination
+    const reqRes = await fetch(`${baseUrl}/requests?page_size=50`, { headers });
+    const reqData = await reqRes.json();
+    const requests: Array<{ id: string }> = reqData?.list ?? [];
 
-    return NextResponse.json({ keyPreview, sampleApproval });
+    let commentDebug = null;
+    for (const req of requests) {
+      const comRes = await fetch(`${baseUrl}/comments?request_guid=${req.id}&page_size=100`, { headers });
+      const comData = await comRes.json();
+      if ((comData?.list?.length ?? 0) > 0) {
+        commentDebug = {
+          request_id: req.id,
+          total: comData.total,
+          size: comData.size,
+          returned: comData.list?.length,
+          next_page_token: comData.next_page_token ?? null,
+        };
+        break;
+      }
+    }
+
+    return NextResponse.json({ keyPreview, commentDebug });
   } catch (error) {
     return NextResponse.json({ keyPreview, error: error instanceof Error ? error.message : String(error) });
   }
