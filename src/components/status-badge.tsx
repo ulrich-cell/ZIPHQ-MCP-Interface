@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { getStatusInfo } from "@/lib/zip-api";
+import { getStatusInfo } from "@/lib/zip-types";
 
 export function StatusBadge({ status }: { status: number }) {
   const info = getStatusInfo(status);

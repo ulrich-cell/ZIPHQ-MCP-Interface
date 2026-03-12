@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import type { ZipRequest } from "@/lib/zip-api";
-import { formatEpoch, formatCurrency, requesterName } from "@/lib/zip-api";
+import type { ZipRequest } from "@/lib/zip-types";
+import { formatEpoch, formatCurrency, requesterName } from "@/lib/zip-types";
 import { StatusBadge } from "./status-badge";
 
 interface TicketTableProps {

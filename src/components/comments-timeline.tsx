@@ -1,6 +1,6 @@
 import { MessageSquare, Sparkles } from "lucide-react";
-import type { ZipComment } from "@/lib/zip-api";
-import { formatEpochLong } from "@/lib/zip-api";
+import type { ZipComment } from "@/lib/zip-types";
+import { formatEpochLong } from "@/lib/zip-types";
 
 interface CommentsTimelineProps {
   comments: ZipComment[];

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import type { ZipRequest } from "@/lib/zip-api";
+import type { ZipRequest } from "@/lib/zip-types";
 import { TicketTable } from "./ticket-table";
 
 interface StatusGroupProps {

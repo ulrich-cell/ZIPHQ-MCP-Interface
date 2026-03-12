@@ -1,5 +1,5 @@
 import { Building2, Globe, Tag } from "lucide-react";
-import type { ZipVendor } from "@/lib/zip-api";
+import type { ZipVendor } from "@/lib/zip-types";
 
 interface VendorCardProps {
   vendor: ZipVendor;
