@@ -226,7 +226,7 @@ export async function searchApprovals(filters: {
   status?: number;
   request_number?: string;
   page_size?: number;
-}): Promise<{ data: ZipApproval[]; total_count: number }> {
+} = {}): Promise<{ data: ZipApproval[]; total_count: number }> {
   const resp = await zipFetch<ZipListResponse<ZipApproval>>(
     "/approvals",
     toParams({ page_size: 100, ...filters })
