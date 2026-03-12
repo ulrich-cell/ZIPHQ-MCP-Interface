@@ -61,14 +61,14 @@ export function AttachmentsPanel({ attachments }: AttachmentsPanelProps) {
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/40 group"
               >
-                <Icon className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
-                <span className="flex-1 truncate text-sm text-card-foreground group-hover:text-foreground">
+                <Icon className="h-4 w-4 shrink-0 text-yellow-500/60 group-hover:text-yellow-400 transition-colors" />
+                <span className="flex-1 truncate text-xs font-mono text-yellow-200/50 group-hover:text-yellow-200/80 transition-colors">
                   {label}
                 </span>
-                <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-xs font-mono text-muted-foreground">
+                <span className="shrink-0 rounded bg-yellow-500/10 px-1.5 py-0.5 text-xs font-mono text-yellow-500/60">
                   {ext}
                 </span>
-                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ExternalLink className="h-3 w-3 shrink-0 text-yellow-500/40 opacity-0 group-hover:opacity-100 transition-opacity" />
               </a>
             </li>
           );
