@@ -6,6 +6,7 @@
     "dev": "next dev",
     "dev:sandbox": "op run --env-file=.env.sandbox -- next dev -p 2000",
     "dev:prod": "op run --env-file=.env.prod -- next dev -p 2000",
+    "dev:both": "op run --env-file=.env.both -- next dev -p 2000",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

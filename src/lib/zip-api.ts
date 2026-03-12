@@ -1,7 +1,16 @@
 import "server-only";
+import { cookies } from "next/headers";
 
 const BASE_URL = process.env.ZIP_BASE_URL || "https://api.ziphq.com";
-const API_KEY = process.env.ZIP_API_KEY || "";
+
+async function getApiKey(): Promise<string> {
+  const cookieStore = await cookies();
+  const zipEnv = cookieStore.get("zip_env")?.value;
+  if (zipEnv === "sandbox") {
+    return process.env.ZIP_API_KEY_SANDBOX || process.env.ZIP_API_KEY || "";
+  }
+  return process.env.ZIP_API_KEY_PROD || process.env.ZIP_API_KEY || "";
+}
 
 interface ZipListResponse<T> {
   list: T[];
@@ -119,6 +128,7 @@ async function zipFetch<T>(
   path: string,
   params?: Record<string, string | number | boolean | undefined>
 ): Promise<T> {
+  const API_KEY = await getApiKey();
   if (!API_KEY) {
     throw new ZipApiError(401, "ZIP_API_KEY is not configured");
   }
