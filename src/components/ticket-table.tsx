@@ -1,14 +1,18 @@
-import Link from "next/link";
+"use client";
+
 import { ChevronRight } from "lucide-react";
 import type { ZipRequest } from "@/lib/zip-types";
 import { formatEpoch, formatCurrency, requesterName } from "@/lib/zip-types";
 import { StatusBadge } from "./status-badge";
+import { useOpenTicket } from "./ticket-modal";
 
 interface TicketTableProps {
   tickets: ZipRequest[];
 }
 
 export function TicketTable({ tickets }: TicketTableProps) {
+  const openTicket = useOpenTicket();
+
   if (tickets.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-12 text-center">
@@ -47,19 +51,18 @@ export function TicketTable({ tickets }: TicketTableProps) {
           {tickets.map((ticket) => (
             <tr
               key={ticket.id}
-              className="group transition-colors hover:bg-muted/30"
+              onClick={() => openTicket(ticket.id)}
+              className="group cursor-pointer transition-colors hover:bg-muted/30"
             >
               <td className="px-4 py-3">
-                <Link href={`/tickets/${ticket.id}`} className="block">
-                  <span className="font-mono text-xs text-muted-foreground">
-                    REQ-{ticket.request_number}
-                  </span>
-                  {ticket.name && (
-                    <p className="mt-0.5 font-medium text-card-foreground line-clamp-1">
-                      {ticket.name}
-                    </p>
-                  )}
-                </Link>
+                <span className="font-mono text-xs text-muted-foreground">
+                  REQ-{ticket.request_number}
+                </span>
+                {ticket.name && (
+                  <p className="mt-0.5 font-medium text-card-foreground line-clamp-1">
+                    {ticket.name}
+                  </p>
+                )}
               </td>
               <td className="px-4 py-3">
                 <StatusBadge status={ticket.status} />
@@ -71,15 +74,16 @@ export function TicketTable({ tickets }: TicketTableProps) {
                 {requesterName(ticket)}
               </td>
               <td className="hidden px-4 py-3 text-right font-mono text-muted-foreground sm:table-cell">
-                {formatCurrency(ticket.price_detail?.total, ticket.price_detail?.currency)}
+                {formatCurrency(
+                  ticket.price_detail?.total,
+                  ticket.price_detail?.currency
+                )}
               </td>
               <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
                 {formatEpoch(ticket.created_at)}
               </td>
               <td className="px-4 py-3">
-                <Link href={`/tickets/${ticket.id}`}>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                </Link>
+                <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
               </td>
             </tr>
           ))}

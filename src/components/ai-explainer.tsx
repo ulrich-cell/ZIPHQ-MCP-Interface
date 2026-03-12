@@ -8,7 +8,13 @@ interface FloatingPos {
   y: number;
 }
 
-export function AiExplainer({ children }: { children: React.ReactNode }) {
+export function AiExplainer({
+  children,
+  zClass = "z-50",
+}: {
+  children: React.ReactNode;
+  zClass?: string;
+}) {
   const [selectedText, setSelectedText] = useState("");
   const [pos, setPos] = useState<FloatingPos | null>(null);
   const [mode, setMode] = useState<"explain" | "simplify" | null>(null);
@@ -90,7 +96,7 @@ export function AiExplainer({ children }: { children: React.ReactNode }) {
       {/* Floating action buttons */}
       {pos && !mode && (
         <div
-          className="fixed z-50 flex items-center gap-1 rounded-lg border border-border bg-card shadow-lg px-1 py-1"
+          className={`fixed ${zClass} flex items-center gap-1 rounded-lg border border-border bg-card shadow-lg px-1 py-1`}
           style={{ left: pos.x, top: pos.y, transform: "translateX(-50%)" }}
         >
           <button
@@ -115,7 +121,7 @@ export function AiExplainer({ children }: { children: React.ReactNode }) {
       {mode && (
         <div
           ref={panelRef}
-          className="fixed z-50 w-80 rounded-xl border border-border bg-card shadow-xl"
+          className={`fixed ${zClass} w-80 rounded-xl border border-border bg-card shadow-xl`}
           style={{ left: pos?.x ?? 0, top: (pos?.y ?? 0) + 8, transform: "translateX(-50%)" }}
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">

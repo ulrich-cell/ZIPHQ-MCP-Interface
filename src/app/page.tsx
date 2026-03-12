@@ -5,6 +5,7 @@ import type { ZipRequest } from "@/lib/zip-api";
 import { getSession } from "@/lib/session";
 import { SummaryCard } from "@/components/summary-card";
 import { StatusGroup } from "@/components/status-group";
+import { TicketModalProvider } from "@/components/ticket-modal";
 
 // Statuses that are actionable — expanded by default
 const DEFAULT_OPEN = new Set([1, 2]);
@@ -111,9 +112,11 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">ZipHQ ticket overview and security review status</p>
       </div>
-      <Suspense fallback={<DashboardSkeleton />}>
-        <DashboardContent />
-      </Suspense>
+      <TicketModalProvider>
+        <Suspense fallback={<DashboardSkeleton />}>
+          <DashboardContent />
+        </Suspense>
+      </TicketModalProvider>
     </div>
   );
 }
