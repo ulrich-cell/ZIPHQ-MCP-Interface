@@ -126,8 +126,9 @@ async function TicketContent({ id }: { id: string }) {
   const commercialFields: FieldEntry[] = [];
   const securityFields: FieldEntry[] = [];
 
-  // Track seen labels (normalised) to prevent duplicates
-  const seen = new Set<string>();
+  // Track seen labels (normalised) to prevent duplicates.
+  // Pre-seed with labels already shown in the header.
+  const seen = new Set<string>(["name", "department", "vendor", "status"]);
   const push = (target: FieldEntry[], label: string, value: string) => {
     const key = label.toLowerCase().trim();
     if (seen.has(key) || !value || value === "—") return;
