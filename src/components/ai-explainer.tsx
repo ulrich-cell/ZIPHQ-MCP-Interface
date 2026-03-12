@@ -34,9 +34,10 @@ export function AiExplainer({
     const rect = range?.getBoundingClientRect();
     if (!rect) return;
     setSelectedText(text);
+    // Fixed positioning is relative to the viewport — no scroll offset needed
     setPos({
-      x: rect.left + rect.width / 2 + window.scrollX,
-      y: rect.top + window.scrollY - 44,
+      x: rect.left + rect.width / 2,
+      y: rect.top - 48,
     });
     setMode(null);
     setResponse("");
@@ -90,7 +91,7 @@ export function AiExplainer({
   };
 
   return (
-    <div className="relative">
+    <div>
       {children}
 
       {/* Floating action buttons */}
@@ -122,7 +123,7 @@ export function AiExplainer({
         <div
           ref={panelRef}
           className={`fixed ${zClass} w-80 rounded-xl border border-border bg-card shadow-xl`}
-          style={{ left: pos?.x ?? 0, top: (pos?.y ?? 0) + 8, transform: "translateX(-50%)" }}
+          style={{ left: pos?.x ?? 0, top: (pos?.y ?? 0) + 52, transform: "translateX(-50%)" }}
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-2">

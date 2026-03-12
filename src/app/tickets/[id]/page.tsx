@@ -196,6 +196,11 @@ async function TicketContent({ id }: { id: string }) {
 
   return (
     <div>
+      {/* AI hint */}
+      <div className="mb-4 flex items-center gap-1.5 text-xs text-muted-foreground/50 select-none">
+        <span className="inline-block h-1 w-1 rounded-full bg-purple-400/60" />
+        Highlight any text to explain or simplify with AI
+      </div>
       {/* Header card */}
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
