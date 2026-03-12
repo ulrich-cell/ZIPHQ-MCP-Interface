@@ -25,9 +25,13 @@ export function CommentsTimeline({ comments, summary }: CommentsTimelineProps) {
         <div className="rounded-xl border border-border bg-card shadow-sm">
           <div className="flex items-center gap-2 border-b border-border px-5 py-3">
             <Sparkles className="h-4 w-4 text-purple-500" />
-            <h3 className="text-sm font-medium text-muted-foreground">AI Summary</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">AI Summary of Comments</h3>
           </div>
-          <p className="px-5 py-4 text-sm text-card-foreground leading-relaxed">{summary}</p>
+          <div className="px-5 py-5 space-y-3">
+            {summary.split("\n").filter(Boolean).map((line, i) => (
+              <p key={i} className="text-sm text-card-foreground leading-7">{line}</p>
+            ))}
+          </div>
         </div>
       )}
 
