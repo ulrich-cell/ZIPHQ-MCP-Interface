@@ -25,10 +25,16 @@ async function DashboardContent() {
     ? approvalsResult.data.filter((a) => a.assignee?.id === session.id)
     : approvalsResult.data;
 
-  const myRequestIds = new Set(myApprovals.map((a) => a.request?.id).filter(Boolean));
+  // Tickets the user is involved in: assigned as approver OR is the requester/creator
+  const myApprovalRequestIds = new Set(myApprovals.map((a) => a.request?.id).filter(Boolean));
 
   const tickets: ZipRequest[] = session?.id
-    ? requestsResult.data.filter((t) => myRequestIds.has(t.id))
+    ? requestsResult.data.filter(
+        (t) =>
+          myApprovalRequestIds.has(t.id) ||
+          t.requester?.id === session.id ||
+          t.creator?.id === session.id
+      )
     : requestsResult.data;
 
   // Group by request status
