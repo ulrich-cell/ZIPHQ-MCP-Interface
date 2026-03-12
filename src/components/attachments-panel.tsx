@@ -98,12 +98,16 @@ export function AttachmentsPanel({ attachments }: AttachmentsPanelProps) {
             </p>
           </div>
 
-          <ul className="divide-y divide-border/50">
+          <ul className="py-1">
             {safeAttachments.map((att) => {
               const Icon = getFileIcon(att.name, att.type);
               const label = sanitizeName(att.name);
               const ext = getExt(att.name);
               const risky = isRisky(ext);
+              // Strip extension from label if it already ends with it
+              const displayName = label.toLowerCase().endsWith(`.${ext}`)
+                ? label.slice(0, -(ext.length + 1))
+                : label;
 
               return (
                 <li key={att.id}>
@@ -111,12 +115,12 @@ export function AttachmentsPanel({ attachments }: AttachmentsPanelProps) {
                     href={att.url}
                     target="_blank"
                     rel="noopener noreferrer nofollow"
-                    className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/20 transition-colors group/item"
+                    className="flex items-center gap-3 px-5 py-1.5 hover:bg-muted/20 transition-colors group/item"
                   >
-                    <Icon className={`h-3.5 w-3.5 shrink-0 ${risky ? "text-red-400/60" : "text-yellow-500/50 group-hover/item:text-yellow-400/80"} transition-colors`} />
+                    <Icon className={`h-3.5 w-3.5 shrink-0 ${risky ? "text-red-400/60" : "text-yellow-500/40 group-hover/item:text-yellow-400/70"} transition-colors`} />
 
-                    <span className={`flex-1 truncate text-xs font-mono tracking-tight ${risky ? "text-red-300/60" : "text-yellow-100/40 group-hover/item:text-yellow-100/70"} transition-colors`}>
-                      {label}
+                    <span className={`flex-1 truncate text-xs font-mono tracking-tight ${risky ? "text-red-300/70" : "text-yellow-300/50 group-hover/item:text-yellow-300/80"} transition-colors`}>
+                      {displayName}
                     </span>
 
                     <div className="flex items-center gap-2 shrink-0">
@@ -126,7 +130,7 @@ export function AttachmentsPanel({ attachments }: AttachmentsPanelProps) {
                           caution
                         </span>
                       )}
-                      <span className={`rounded px-1.5 py-0.5 text-xs font-mono tracking-wider ${risky ? "bg-red-500/10 text-red-400/60" : "bg-yellow-500/10 text-yellow-500/50"}`}>
+                      <span className={`rounded px-1.5 py-0.5 text-xs font-mono tracking-wider ${risky ? "bg-red-500/10 text-red-400/60" : "bg-yellow-500/10 text-yellow-500/40"}`}>
                         {ext.toUpperCase()}
                       </span>
                       <ExternalLink className="h-3 w-3 text-muted-foreground/30 opacity-0 group-hover/item:opacity-100 transition-opacity" />
