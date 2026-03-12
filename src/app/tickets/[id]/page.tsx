@@ -16,6 +16,7 @@ import { AttributePanel } from "@/components/attribute-panel";
 import { AttachmentsPanel } from "@/components/attachments-panel";
 import { VendorCard } from "@/components/vendor-card";
 import { CommentsTimeline } from "@/components/comments-timeline";
+import { AiExplainer } from "@/components/ai-explainer";
 
 async function TicketContent({ id }: { id: string }) {
   const ticket = await getRequest(id);
@@ -166,6 +167,7 @@ export default async function TicketDetailPage({
   const { id } = await params;
 
   return (
+    <AiExplainer>
     <div>
       <div className="mb-6">
         <Link
@@ -180,5 +182,6 @@ export default async function TicketDetailPage({
         <TicketContent id={id} />
       </Suspense>
     </div>
+    </AiExplainer>
   );
 }
