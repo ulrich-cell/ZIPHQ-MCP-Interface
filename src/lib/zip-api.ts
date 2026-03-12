@@ -116,7 +116,7 @@ export async function searchRequests(
 }
 
 export async function getRequest(id: string): Promise<ZipRequest> {
-  return zipFetch<ZipRequest>(`/requests/${id}`, { include_attributes: true });
+  return zipFetch<ZipRequest>(`/requests/${id}`);
 }
 
 // --- Vendors ---
